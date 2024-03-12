@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use crate::{message::LogEntry, util::{LogId, NodeId, TermId}};
+use crate::{log::LogEntry, util::{LogId, NodeId, TermId}};
 
 pub enum NodeState {
   LeaderNode(LeaderNode),
@@ -18,7 +18,17 @@ struct FollowerNode {
 }
 
 struct CandidateNode {
-  votes_collected: u32,
+  votes_responded: u32,
+  votes_granted: u32,
+}
+
+impl CandidateNode {
+  pub fn new() -> Self {
+    CandidateNode {
+      votes_granted: 0,
+      votes_responded: 0,
+    }
+  }
 }
 
 // String -> rpc message 
@@ -55,5 +65,35 @@ impl RaftState {
       commit_index: 0,
       last_applied: 0
     }
+  }
+
+  pub fn leader(&self) -> Option<&NodeId> {
+    match &self.state {
+      NodeState::LeaderNode(_) => Some(&self.node_id),
+      NodeState::FollowerNode(follower_state) => follower_state.leader.as_ref(),
+      NodeState::CandidateNode(_) => None,
+    }
+  }
+
+  fn restart(&mut self) {
+    self.current_term += 1;
+    self.voted_for = None;
+    match &self.state {
+      NodeState::LeaderNode(_) => todo!(),
+      NodeState::FollowerNode(_) => todo!(),
+      NodeState::CandidateNode(_) => todo!(),
+    }
+  }
+
+  fn timeout(&mut self) {
+    let a = match &self.state {
+      NodeState::LeaderNode(_) => None,
+      NodeState::FollowerNode(_) | NodeState::CandidateNode(_) => {
+        self.current_term += 1;
+        self.voted_for = Some(self.node_id.clone());
+        let new_state = CandidateNode::new();
+        Some(())
+      }
+    };
   }
 }

@@ -1,21 +1,15 @@
-use bytes::Bytes;
-use crate::util::{LogId, NodeId, TermId};
+use crate::{log::LogEntry, util::{LogId, NodeId, TermId}};
 
 enum RpcMessage {
   AppendEntriesRequest(AppendEntriesRequest), // messages and heartbeat
   AppendEntriesResponse(AppendEntriesResponse),
-  VoteRequest(VoteRequest),
-  VoteResponse(VoteResponse),
+  RequestVoteRequest(RequestVoteRequest),
+  RequestVoteResponse(RequestVoteResponse),
 }
 
 struct RaftMessage {
   term: TermId,
   msg: RpcMessage
-}
-
-pub struct LogEntry {
-  term: TermId,
-  data: Bytes
 }
 
 struct AppendEntriesRequest {
@@ -30,13 +24,13 @@ struct AppendEntriesResponse {
   success: bool,
 }
 
-struct VoteRequest {
+struct RequestVoteRequest {
   candidate_id: NodeId,
   last_log_index: LogId,
   last_log_term: TermId,
 }
 
-struct VoteResponse {
+struct RequestVoteResponse {
   term: TermId,
   vote_success: bool,
 }
